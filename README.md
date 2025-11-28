@@ -297,16 +297,6 @@ find, du, df
 
 ---
 
-# 🧑‍🏫 What Students Must Submit
-
-A file called **answers.txt** containing:
-
-* Commands used (copy/paste)
-* Explanations for hard link vs soft link
-* Results of user/group tests
-
----
-
 # 🎉 End of Lab
 
 You now have a working environment to practice Linux fundamentals, the same skills used in DevOps, Cloud, Security, and all backend work.
