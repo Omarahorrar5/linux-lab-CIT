@@ -310,14 +310,3 @@ A file called **answers.txt** containing:
 # 🎉 End of Lab
 
 You now have a working environment to practice Linux fundamentals, the same skills used in DevOps, Cloud, Security, and all backend work.
-
----
-
-If you'd like, I can also generate:
-
-✅ The GitHub repo structure
-✅ A ZIP containing everything
-✅ Slides (PowerPoint/PDF) for presentation
-✅ A second part of the lab: processes, networking, shell scripting
-
-Just tell me!
