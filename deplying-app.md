@@ -234,32 +234,6 @@ Stop and restart the server using CTRL+C and `node server.js`.
 
 ---
 
-# 📝 9. Cheat Sheet
-
-### Linux Commands
-
-```
-mkdir, cd, nano, ip a
-```
-
-### Node.js Commands
-
-```
-npm init -y
-npm install express
-node server.js
-```
-
-### URL Testing
-
-```
-http://localhost:3000
-http://localhost:3000/hello
-http://localhost:3000/time
-```
-
----
-
 # 🎉 End of Lab
 
 You now deployed a simple web app (frontend + backend) inside a Linux VM — a core skill for **Cloud**, **DevOps**, and **Backend Engineering**.
