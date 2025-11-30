@@ -10,7 +10,7 @@ This document is an introduction to Linux and ensures that your virtual machine 
 Before starting, please make sure you have:
 
 - **VMware Workstation or VMware Player** installed  
-- The **Ubuntu Linux image** correctly imported into VMware  
+- The **Linux Mint image** correctly imported into VMware  
 - Your **virtual machine running** with a working terminal
 
 ---
