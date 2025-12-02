@@ -1,549 +1,207 @@
-# 🚀 Linux Lab — User Management, File Operations & Permissions
+# 🚀 Linux Basics Lab — Users, Files & Permissions
 
-## 🎯 Objectives
+## 🎯 What You'll Learn
 
-By the end of this lab, students will be able to:
+* Create and manage users
+* Work with files and folders
+* Understand and set permissions
 
-* Identify current user and system information.
-* Create and manage users and groups.
-* Perform essential file and directory operations.
-* Configure file permissions (`rwx`), ownership, and access control.
-* Apply all concepts through hands-on exercises.
-
-Works on **Ubuntu (VMware)**.
+**Works on Ubuntu (VMware)**
 
 ---
 
-# 👤 1. Who Am I? — System Identity
+# 👤 1. Who Am I?
 
-Before managing users, know who you are!
+Before doing anything, let's find out who you are!
 
-## 🔍 Basic identity commands
+## Basic Commands
 
 ```bash
-whoami              # show current username
-id                  # show uid, gid, and groups
-id username         # show info for specific user
-groups              # list groups you belong to
-groups username     # list groups for specific user
-who                 # who is logged in
-w                   # who is logged in + what they're doing
-hostname            # show machine name
-uname -a            # full system information
+whoami              # your username
+id                  # your user ID and groups
+groups              # groups you belong to
+hostname            # computer name
 ```
 
-**Example output:**
+**Try it:**
 
 ```bash
 $ whoami
 omar
 
-$ id
-uid=1000(omar) gid=1000(omar) groups=1000(omar),27(sudo),999(docker)
-
 $ groups
-omar sudo docker
+omar sudo
 ```
 
 ---
 
-# 👥 2. Users & Groups Management
+# 👥 2. Managing Users
 
-Linux is multi-user. Every user has a **UID** (User ID) and belongs to one or more **groups** (GID).
+Every user in Linux has a username and belongs to groups.
 
----
-
-## ➕ Creating users — `adduser` / `useradd`
+## Creating a User
 
 ```bash
-sudo adduser student1           # interactive (recommended)
-sudo useradd -m student2        # manual (-m creates home dir)
+sudo adduser student1
 ```
 
-**Set/change password:**
+This will ask you to:
+* Set a password
+* Enter user details (you can skip these)
+
+## Viewing Users
 
 ```bash
-sudo passwd student1
+id student1                    # see user info
+grep student1 /etc/passwd      # see user details
 ```
 
-**Example:**
+## Deleting a User
 
 ```bash
-sudo adduser alice
-# Enter password and user details
+sudo userdel student1          # delete user only
+sudo userdel -r student1       # delete user + their files
 ```
 
----
+⚠️ **Be careful with `-r` — it deletes everything!**
 
-## 👁️ View user information
+## Switching Users
 
 ```bash
-cat /etc/passwd                 # all users
-grep alice /etc/passwd          # specific user
-id alice
-finger alice                    # detailed info (if installed)
-```
-
-**Example `/etc/passwd` entry:**
-
-```
-alice:x:1001:1001:Alice Smith:/home/alice:/bin/bash
-```
-
-Breakdown: `username:password:UID:GID:comment:home:shell`
-
----
-
-## ✏️ Modifying users — `usermod`
-
-```bash
-sudo usermod -l newname oldname     # rename user
-sudo usermod -d /new/home alice     # change home directory
-sudo usermod -s /bin/zsh alice      # change shell
-sudo usermod -L alice               # lock account
-sudo usermod -U alice               # unlock account
+su - student1       # become student1
+exit                # go back to your account
 ```
 
 ---
 
-## 🗑️ Deleting users — `userdel`
+# 👥 3. Managing Groups
 
-```bash
-sudo userdel student1               # delete user (keep home)
-sudo userdel -r student1            # delete user + home directory
-```
+Groups let multiple users share access to files.
 
-⚠️ **Warning:** `-r` removes all user files permanently!
-
----
-
-## 👥 Creating groups — `groupadd`
+## Creating Groups
 
 ```bash
 sudo groupadd developers
-sudo groupadd -g 5000 admins        # specify GID
 ```
 
----
-
-## 🔗 Adding users to groups — `usermod`
+## Adding Users to Groups
 
 ```bash
-sudo usermod -aG developers alice   # add to group (keep existing)
-sudo usermod -g developers alice    # change primary group
+sudo usermod -aG developers student1
 ```
 
-**Key difference:**
+* `-aG` means "add to group" (keeps other groups too)
 
-* `-aG` = **append** to supplementary groups
-* `-g` = change **primary** group
-
-**Example — Add multiple users to a group:**
+## Viewing Groups
 
 ```bash
-sudo usermod -aG developers alice
-sudo usermod -aG developers bob
-sudo usermod -aG developers charlie
+groups student1                # see what groups student1 is in
+grep developers /etc/group     # see who's in developers group
 ```
 
----
-
-## 📋 View group information
-
-```bash
-cat /etc/group                      # all groups
-grep developers /etc/group          # specific group
-getent group developers             # query group database
-```
-
-**Example `/etc/group` entry:**
-
-```
-developers:x:1002:alice,bob,charlie
-```
-
-Breakdown: `groupname:password:GID:members`
-
----
-
-## ✏️ Modifying groups — `groupmod`
-
-```bash
-sudo groupmod -n newname oldname    # rename group
-sudo groupmod -g 6000 developers    # change GID
-```
-
----
-
-## 🗑️ Deleting groups — `groupdel`
+## Deleting Groups
 
 ```bash
 sudo groupdel developers
 ```
 
-Cannot delete a user's primary group while user exists.
-
 ---
 
-## 🔄 Switch user — `su`
+# 📂 4. Working with Files
+
+## Listing Files
 
 ```bash
-su alice                # switch user (keeps environment)
-su - alice              # switch user (loads alice's environment)
-exit                    # return to previous user
+ls              # list files
+ls -l           # detailed list (shows permissions)
+ls -a           # show hidden files (start with .)
+ls -lh          # sizes in KB/MB/GB
 ```
 
-**Difference:**
-
-* `su alice` → stays in current directory
-* `su - alice` → goes to alice's home, loads her shell config
-
----
-
-## 🔒 Sudo privileges
+## Creating Files
 
 ```bash
-sudo command                        # run as superuser
-sudo -u alice command               # run as alice
-sudo -l                             # list allowed commands
-sudo -i                             # interactive root shell
+touch notes.txt                    # create empty file
+echo "Hello Linux" > file.txt      # create with content
+echo "More text" >> file.txt       # add to existing file
 ```
 
-**Grant sudo access:**
+## Viewing Files
 
 ```bash
-sudo usermod -aG sudo alice         # Ubuntu/Debian
-sudo usermod -aG wheel alice        # CentOS/RHEL
+cat file.txt        # show entire file
+head file.txt       # first 10 lines
+tail file.txt       # last 10 lines
+less file.txt       # view page by page (press q to quit)
 ```
 
-**Or edit sudoers file:**
+## Creating Folders
 
 ```bash
-sudo visudo
+mkdir projects                    # create folder
+mkdir -p work/code/python         # create nested folders
 ```
 
-Add line: `alice ALL=(ALL:ALL) ALL`
+The `-p` option creates parent folders automatically.
 
----
-
-# 📂 3. File & Directory Management
-
-Now that we can manage users, let's manage their files!
-
----
-
-## 🔍 Listing files — `ls`
+## Copying
 
 ```bash
-ls                  # list files
-ls -l               # detailed list (permissions, size, owner)
-ls -lh              # human-readable sizes (KB, MB, GB)
-ls -a               # show hidden files (starting with .)
-ls -la              # detailed + hidden
-ls -lt              # sort by modification time
-ls -lS              # sort by size
-ls -R               # recursive listing
+cp file.txt backup.txt            # copy file
+cp -r folder1 folder2             # copy folder
 ```
 
-**Hidden files example:**
+**Remember:** Use `-r` for folders!
+
+## Moving & Renaming
 
 ```bash
-ls -a ~
-# Shows: .bashrc .profile .ssh/ .config/
+mv oldname.txt newname.txt        # rename
+mv file.txt Documents/            # move file
 ```
 
----
-
-## 📄 Creating files — `touch`
+## Deleting
 
 ```bash
-touch file.txt                  # create empty file
-touch file1.txt file2.txt       # create multiple
-touch -t 202301151200 old.txt   # set specific timestamp
+rm file.txt                       # delete file
+rm -r folder/                     # delete folder
+rm -i important.txt               # ask before deleting
 ```
 
-**File editors:**
+⚠️ **Warning:** `rm -rf` deletes everything without asking — be careful!
+
+## Navigation
 
 ```bash
-nano file.txt       # beginner-friendly
-vim file.txt        # powerful but steep learning curve
-nvim file.txt       # modern vim
-gedit file.txt      # GUI editor (if available)
+pwd             # where am I?
+cd Documents    # go to Documents
+cd ..           # go up one level
+cd ~            # go to home folder
+cd -            # go to previous location
 ```
 
 ---
 
-## 📝 Viewing file content
-
-```bash
-cat file.txt                    # show entire file
-cat file1.txt file2.txt         # concatenate files
-head file.txt                   # first 10 lines
-head -n 5 file.txt              # first 5 lines
-tail file.txt                   # last 10 lines
-tail -n 20 file.txt             # last 20 lines
-tail -f /var/log/syslog         # follow file updates (logs)
-less file.txt                   # paginated view (q to quit)
-more file.txt                   # simple paginated view
-```
-
----
-
-## ✍️ Writing to files
-
-```bash
-echo "Hello World" > file.txt       # overwrite file
-echo "New line" >> file.txt         # append to file
-cat > file.txt                      # type until Ctrl+D
-cat << EOF > file.txt               # heredoc (multi-line)
-Line 1
-Line 2
-EOF
-```
-
-**Example:**
-
-```bash
-echo "My first Linux file" > notes.txt
-echo "Learning is fun!" >> notes.txt
-cat notes.txt
-```
-
----
-
-## 📁 Creating directories — `mkdir`
-
-```bash
-mkdir test                      # create directory
-mkdir dir1 dir2 dir3            # create multiple
-mkdir -p project/src/main       # create nested (parents too)
-mkdir -m 755 public             # create with permissions
-```
-
-**The `-p` option** creates parent directories if they don't exist.
-
-**Example:**
-
-```bash
-mkdir -p ~/workspace/python/projects
-```
-
----
-
-## 🧭 Navigation — `cd`, `pwd`
-
-```bash
-pwd                 # print working directory
-cd /etc             # go to /etc
-cd ~                # go to home directory
-cd                  # go to home (same as cd ~)
-cd ..               # go up one level
-cd ../..            # go up two levels
-cd -                # go to previous directory
-cd /                # go to root
-```
-
-**Example navigation:**
-
-```bash
-$ pwd
-/home/omar
-$ cd /var/log
-$ pwd
-/var/log
-$ cd -              # back to /home/omar
-```
-
----
-
-## 📑 Copy files & directories — `cp`
-
-```bash
-cp source.txt dest.txt              # copy file
-cp file.txt /tmp/                   # copy to directory
-cp file1.txt file2.txt /backup/     # copy multiple
-cp -r folder1 folder2               # copy directory (recursive)
-cp -i source.txt dest.txt           # interactive (confirm overwrite)
-cp -u source.txt dest.txt           # update (only if newer)
-cp -a folder backup                 # archive mode (preserve all)
-```
-
-**Example:**
-
-```bash
-cp project/ project_backup/
-# Error! Need -r for directories
-
-cp -r project/ project_backup/      # Correct
-```
-
----
-
-## 🚚 Move & rename — `mv`
-
-```bash
-mv oldname.txt newname.txt          # rename file
-mv file.txt /tmp/                   # move file
-mv file1.txt file2.txt /backup/     # move multiple
-mv -i source.txt dest.txt           # interactive (ask before overwrite)
-mv -u source.txt dest.txt           # update only if newer
-mv dir1 dir2                        # rename/move directory
-```
-
-**Example:**
-
-```bash
-mv notes/ old_notes/                # rename directory
-mv *.txt Documents/                 # move all txt files
-```
-
----
-
-## 🗑️ Delete — `rm`, `rmdir`
-
-```bash
-rm file.txt                         # delete file
-rm file1.txt file2.txt              # delete multiple
-rm -i file.txt                      # interactive (confirm)
-rm -r folder/                       # delete directory + contents
-rm -rf folder/                      # force delete (DANGEROUS!)
-rmdir empty_folder/                 # delete empty directory only
-```
-
-⚠️ **WARNING:** `rm -rf /` destroys the entire system — **NEVER run it!**
-
-**Safe practice:**
-
-```bash
-rm -i important.txt     # Always use -i for important files
-```
-
----
-
-## 📦 File information — `stat`, `file`
-
-```bash
-stat file.txt           # detailed metadata (size, timestamps, perms)
-file file.txt           # determine file type
-file *                  # check type of all files
-```
-
-**Example output:**
-
-```bash
-$ file script.sh
-script.sh: Bash script, ASCII text executable
-
-$ file image.jpg
-image.jpg: JPEG image data, JFIF standard
-```
-
----
-
-## 🔗 Links — Hard & Symbolic
-
-**Hard link** = another name for the same file (same inode)
-
-```bash
-ln original.txt hardlink.txt
-```
-
-**Symbolic link (symlink)** = shortcut pointing to original
-
-```bash
-ln -s /path/to/original.txt symlink.txt
-ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/
-```
-
-**Key differences:**
-
-| Feature       | Hard Link                | Symlink                    |
-| ------------- | ------------------------ | -------------------------- |
-| Different file? | No (same inode)          | Yes (pointer)              |
-| Works across filesystems? | No                       | Yes                        |
-| Works with directories? | No                       | Yes                        |
-| Breaks if original deleted? | No (still works)         | Yes (broken link)          |
-
-**Example:**
-
-```bash
-echo "data" > original.txt
-ln original.txt hard.txt        # hard link
-ln -s original.txt soft.txt     # symlink
-
-rm original.txt
-cat hard.txt        # Still works!
-cat soft.txt        # Error: No such file
-```
-
----
-
-## 🔎 Search files — `find`
-
-```bash
-find . -name "*.txt"                # find by name
-find /home -user alice              # files owned by alice
-find . -type f                      # files only
-find . -type d                      # directories only
-find /var -size +10M                # larger than 10MB
-find . -mtime -7                    # modified in last 7 days
-find . -name "*.log" -delete        # find and delete
-find . -perm 644                    # specific permissions
-```
-
-**Example — Find large files:**
-
-```bash
-find ~ -type f -size +100M -exec ls -lh {} \;
-```
-
----
-
-## 📊 Disk usage — `du`, `df`
-
-```bash
-du -sh directory/           # size of directory
-du -sh *                    # size of all items
-du -h --max-depth=1         # top-level sizes only
-df -h                       # disk space (all filesystems)
-df -h /home                 # specific filesystem
-```
-
-**Example:**
-
-```bash
-$ du -sh Downloads/
-2.3G    Downloads/
-
-$ df -h
-Filesystem      Size  Used Avail Use% Mounted on
-/dev/sda1        50G   35G   13G  73% /
-```
-
----
-
-# 🔒 4. File Permissions & Ownership
-
-Every file/directory has:
-
-* **Owner** (user)
-* **Group**
+# 🔒 5. Understanding Permissions
+
+Every file has permissions for three groups:
+* **Owner** (the user who owns it)
+* **Group** (the group that owns it)
 * **Others** (everyone else)
 
-Each can have: **read (r)**, **write (w)**, **execute (x)**
+Each can have three permissions:
+* **r** = read (view the file)
+* **w** = write (change the file)
+* **x** = execute (run the file as a program)
 
----
-
-## 📖 Understanding permissions
-
-**Example output:**
+## Reading Permissions
 
 ```bash
 $ ls -l script.sh
 -rwxr-xr-- 1 omar developers 2048 Jan 28 script.sh
 ```
 
-**Breakdown:**
+**What does this mean?**
 
 ```
 - rwx r-x r--
@@ -551,522 +209,214 @@ $ ls -l script.sh
 │ │   │   └─ Others: read only
 │ │   └───── Group: read + execute
 │ └───────── Owner: read + write + execute
-└─────────── File type (- = file, d = directory, l = link)
+└─────────── Type: - = file, d = folder
 ```
 
-**Permission meanings:**
-
-| Permission | Files | Directories |
-| ---------- | ----- | ----------- |
-| **r** (read) | View content | List contents (`ls`) |
-| **w** (write) | Modify file | Create/delete files inside |
-| **x** (execute) | Run as program | Enter directory (`cd`) |
-
----
-
-## ✏️ Changing permissions — `chmod`
-
-### Symbolic mode:
+## Changing Permissions — Easy Way
 
 ```bash
-chmod u+x file.txt              # add execute for owner
-chmod g-w file.txt              # remove write from group
-chmod o=r file.txt              # set others to read-only
-chmod a+r file.txt              # add read for all (a = all)
-chmod u+rwx,g+rx,o-rwx file.txt # multiple changes
+chmod u+x file.txt      # give owner execute permission
+chmod g-w file.txt      # remove group write permission
+chmod o+r file.txt      # give others read permission
+chmod a+r file.txt      # give everyone read permission
 ```
 
 **Who codes:**
-
 * `u` = user (owner)
 * `g` = group
 * `o` = others
-* `a` = all
+* `a` = all (everyone)
 
-**Operators:**
-
+**What to do:**
 * `+` = add
 * `-` = remove
 * `=` = set exactly
 
----
+## Changing Permissions — Number Way
 
-### Numeric mode:
+Each permission has a number:
+* `r` (read) = 4
+* `w` (write) = 2
+* `x` (execute) = 1
 
-Each permission has a value:
-
-| Permission | Value |
-| ---------- | ----- |
-| `r` (read) | 4     |
-| `w` (write) | 2     |
-| `x` (execute) | 1     |
-
-Add them up for each category:
+Add them up:
 
 ```bash
-chmod 755 script.sh     # rwx r-x r-x
-chmod 644 document.txt  # rw- r-- r--
-chmod 700 private/      # rwx --- ---
-chmod 600 secret.key    # rw- --- ---
-chmod 777 shared/       # rwx rwx rwx (NOT RECOMMENDED!)
+chmod 755 script.sh     # rwx r-x r-x (most programs)
+chmod 644 doc.txt       # rw- r-- r-- (most documents)
+chmod 700 private/      # rwx --- --- (private folder)
+chmod 600 secret.txt    # rw- --- --- (private file)
 ```
 
 **Common patterns:**
+* `755` — programs and shared folders
+* `644` — regular documents
+* `700` — your private folders
+* `600` — your private files
 
-* `755` — executable files, public directories
-* `644` — regular files (documents, configs)
-* `700` — private directories
-* `600` — private files (SSH keys, passwords)
-
-**Calculation example:**
-
-* `rwx` = 4+2+1 = **7**
-* `r-x` = 4+0+1 = **5**
-* `r--` = 4+0+0 = **4**
-
-So `rwxr-xr--` = **754**
-
----
-
-## 👑 Changing ownership — `chown`, `chgrp`
+## Changing Ownership
 
 ```bash
-sudo chown alice file.txt               # change owner
-sudo chown alice:developers file.txt    # change owner + group
-sudo chown :developers file.txt         # change group only
-sudo chown -R alice:alice /home/alice   # recursive
-sudo chgrp developers project/          # change group only
-```
-
-**Example — Shared project:**
-
-```bash
-sudo mkdir /shared
-sudo chown root:developers /shared
-sudo chmod 770 /shared
-```
-
-Now:
-
-* Root can do anything
-* Developers group has full access
-* Others have no access
-
----
-
-## 🔐 Special permissions
-
-### Setuid (4) — Run as file owner
-
-```bash
-chmod u+s /usr/bin/program
-chmod 4755 program
-```
-
-Example: `passwd` command runs as root even when you're not root.
-
----
-
-### Setgid (2) — Inherit group ownership
-
-```bash
-chmod g+s /shared/project
-chmod 2775 /shared/project
-```
-
-Files created inside inherit the directory's group.
-
----
-
-### Sticky bit (1) — Delete only if owner
-
-```bash
-chmod +t /tmp
-chmod 1777 /tmp
-```
-
-Users can only delete their own files (even with write permission).
-
-**Example — `/tmp` permissions:**
-
-```bash
-$ ls -ld /tmp
-drwxrwxrwt 15 root root 4096 Jan 28 /tmp
-             ^
-             └─ sticky bit (t)
+sudo chown alice file.txt                  # change owner
+sudo chown alice:developers file.txt       # change owner + group
+sudo chown -R alice projects/              # change folder + everything inside
 ```
 
 ---
 
-## 🔍 View permissions
+# 🧪 6. Practice Exercises
+
+## Exercise 1: Create Users
 
 ```bash
-ls -l file.txt              # long format
-stat file.txt               # detailed metadata
-getfacl file.txt            # ACLs (if used)
+# 1. Create two users
+sudo adduser dev1
+sudo adduser dev2
+
+# 2. Create a group
+sudo groupadd coders
+
+# 3. Add users to group
+sudo usermod -aG coders dev1
+sudo usermod -aG coders dev2
+
+# 4. Check it worked
+groups dev1
+groups dev2
+```
+
+## Exercise 2: File Practice
+
+```bash
+# 1. Create a project folder
+mkdir -p ~/my_project/code
+
+# 2. Go there
+cd ~/my_project
+
+# 3. Create some files
+touch README.md app.py notes.txt
+
+# 4. Add content
+echo "# My First Project" > README.md
+echo "print('Hello World')" > app.py
+
+# 5. View them
+cat README.md
+cat app.py
+
+# 6. Copy app.py
+cp app.py app_backup.py
+
+# 7. List everything
+ls -l
+
+# 8. Check folder size
+du -sh ~/my_project
+```
+
+## Exercise 3: Permissions Practice
+
+```bash
+# 1. Create a test file
+touch test.txt
+echo "Secret data" > test.txt
+
+# 2. Check current permissions
+ls -l test.txt
+
+# 3. Make it private (only you can read/write)
+chmod 600 test.txt
+ls -l test.txt
+
+# 4. Make it readable by everyone
+chmod 644 test.txt
+ls -l test.txt
+
+# 5. Create a script
+touch myscript.sh
+echo "echo 'Hello from script'" > myscript.sh
+
+# 6. Try to run it
+./myscript.sh       # Error! No execute permission
+
+# 7. Add execute permission
+chmod 755 myscript.sh
+
+# 8. Run it now
+./myscript.sh       # Works!
+```
+
+## Exercise 4: Shared Project
+
+```bash
+# 1. Create shared folder (as your user with sudo)
+sudo mkdir /shared_project
+
+# 2. Create a group for the team
+sudo groupadd team
+
+# 3. Add yourself to the team
+sudo usermod -aG team $(whoami)
+
+# 4. Change folder ownership
+sudo chown $(whoami):team /shared_project
+
+# 5. Set permissions (owner and group can do everything)
+sudo chmod 770 /shared_project
+
+# 6. Check it
+ls -ld /shared_project
 ```
 
 ---
 
-# 🧪 5. Hands-On Lab Exercises
+# 📝 7. Quick Reference
 
-## 📚 Lab 1 — User & Group Management
+## Must-Know Commands
 
-**Scenario:** Set up a development team.
+**Identity:**
+```bash
+whoami, id, groups
+```
 
-1. Check your identity:
+**Users:**
+```bash
+sudo adduser USERNAME
+sudo userdel USERNAME
+su - USERNAME
+```
 
-   ```bash
-   whoami
-   id
-   groups
-   ```
+**Groups:**
+```bash
+sudo groupadd GROUPNAME
+sudo usermod -aG GROUPNAME USERNAME
+```
 
-2. Create users:
+**Files:**
+```bash
+ls, cd, pwd, mkdir, touch, cat, cp, mv, rm
+```
 
-   ```bash
-   sudo adduser dev1
-   sudo adduser dev2
-   sudo adduser manager
-   ```
+**Permissions:**
+```bash
+chmod, chown
+```
 
-3. Create groups:
+## Permission Numbers
 
-   ```bash
-   sudo groupadd developers
-   sudo groupadd management
-   ```
-
-4. Add users to groups:
-
-   ```bash
-   sudo usermod -aG developers dev1
-   sudo usermod -aG developers dev2
-   sudo usermod -aG management manager
-   ```
-
-5. Verify:
-
-   ```bash
-   groups dev1
-   groups manager
-   id dev1
-   ```
-
-6. Switch user and test:
-
-   ```bash
-   su - dev1
-   whoami
-   id
-   exit
-   ```
+| Number | Meaning | Use For |
+|--------|---------|---------|
+| 755 | rwxr-xr-x | Programs, shared folders |
+| 644 | rw-r--r-- | Documents, text files |
+| 700 | rwx------ | Your private folders |
+| 600 | rw------- | Your private files |
 
 ---
 
-## 📚 Lab 2 — File Operations
-
-1. Create directory structure:
-
-   ```bash
-   mkdir -p ~/linux_lab/docs/archive
-   ```
-
-2. Create files:
-
-   ```bash
-   cd ~/linux_lab
-   touch file1.txt file2.txt file3.txt
-   echo "Learning Linux is awesome!" > file1.txt
-   ```
-
-3. Copy operations:
-
-   ```bash
-   cp file1.txt file1_backup.txt
-   cp -r docs docs_backup
-   ```
-
-4. Move operations:
-
-   ```bash
-   mv file3.txt docs/
-   mv file2.txt renamed.txt
-   ```
-
-5. Create links:
-
-   ```bash
-   ln file1.txt hardlink.txt
-   ln -s file1.txt symlink.txt
-   ls -li      # compare inode numbers
-   ```
-
-6. View file info:
-
-   ```bash
-   stat file1.txt
-   file file1.txt
-   ```
-
-7. Search:
-
-   ```bash
-   find . -name "*.txt"
-   find . -type d
-   ```
-
-8. Size check:
-
-   ```bash
-   du -sh docs/
-   du -sh *
-   ```
-
-9. Create large file:
-
-   ```bash
-   dd if=/dev/zero of=bigfile.dat bs=1M count=10
-   ls -lh bigfile.dat
-   ```
-
-10. Clean up:
-
-    ```bash
-    rm bigfile.dat
-    rm -r docs_backup/
-    ```
-
----
-
-## 📚 Lab 3 — Permissions & Ownership
-
-**Scenario:** Create a shared project with proper access control.
-
-1. Create project structure:
-
-   ```bash
-   sudo mkdir /projects
-   sudo mkdir /projects/web_app
-   ```
-
-2. Create group and add users:
-
-   ```bash
-   sudo groupadd webdevs
-   sudo usermod -aG webdevs dev1
-   sudo usermod -aG webdevs dev2
-   ```
-
-3. Set ownership:
-
-   ```bash
-   sudo chown root:webdevs /projects/web_app
-   ```
-
-4. Set permissions (group collaboration):
-
-   ```bash
-   sudo chmod 2770 /projects/web_app
-   ```
-
-   Breakdown:
-   * `2` = setgid (files inherit group)
-   * `770` = owner + group full access, no others
-
-5. Test as dev1:
-
-   ```bash
-   su - dev1
-   cd /projects/web_app
-   touch index.html
-   echo "<h1>Hello World</h1>" > index.html
-   ls -l
-   ```
-
-   Notice the file's group is `webdevs` (because of setgid).
-
-6. Test as dev2:
-
-   ```bash
-   su - dev2
-   cd /projects/web_app
-   echo "<p>Added by dev2</p>" >> index.html
-   ```
-
-   It works! Both devs can collaborate.
-
-7. Create private file:
-
-   ```bash
-   touch secret.txt
-   chmod 600 secret.txt
-   ls -l secret.txt
-   ```
-
-8. Create public read-only:
-
-   ```bash
-   sudo mkdir /projects/public
-   sudo chmod 755 /projects/public
-   echo "Public info" | sudo tee /projects/public/readme.txt
-   sudo chmod 644 /projects/public/readme.txt
-   ```
-
----
-
-## 📚 Lab 4 — Advanced Permissions
-
-**Scenario:** Create a shared directory where users can only delete their own files.
-
-1. Create directory:
-
-   ```bash
-   sudo mkdir /shared_space
-   sudo chmod 1777 /shared_space
-   ```
-
-   `1777` = sticky bit + full access for all
-
-2. Test as different users:
-
-   ```bash
-   # As dev1
-   su - dev1
-   touch /shared_space/dev1_file.txt
-   exit
-
-   # As dev2
-   su - dev2
-   touch /shared_space/dev2_file.txt
-   rm /shared_space/dev1_file.txt     # Permission denied!
-   exit
-   ```
-
-3. Verify sticky bit:
-
-   ```bash
-   ls -ld /shared_space
-   # drwxrwxrwt ... /shared_space
-   #         ^-- sticky bit
-   ```
-
----
-
-## 📚 Lab 5 — Permission Troubleshooting
-
-Given file: `mystery.txt`
-
-1. Create the file:
-
-   ```bash
-   touch mystery.txt
-   chmod 000 mystery.txt
-   ```
-
-2. Try to read it:
-
-   ```bash
-   cat mystery.txt     # Permission denied
-   ```
-
-3. Fix permissions:
-
-   ```bash
-   chmod u+r mystery.txt
-   cat mystery.txt     # Now works!
-   ```
-
-4. Set specific permissions:
-   * Owner: read + write
-   * Group: read only
-   * Others: no access
-
-   ```bash
-   chmod u=rw,g=r,o= mystery.txt
-   # or
-   chmod 640 mystery.txt
-   ```
-
-5. Verify:
-
-   ```bash
-   ls -l mystery.txt
-   # -rw-r----- ...
-   ```
-
----
-
-# 📝 6. Command Cheat Sheet
-
-## Identity
-
-```bash
-whoami, id, groups, who, w, hostname
-```
-
-## Users
-
-```bash
-sudo adduser, sudo useradd, sudo userdel, sudo usermod, sudo passwd
-```
-
-## Groups
-
-```bash
-sudo groupadd, sudo groupdel, sudo groupmod, getent group
-```
-
-## Files
-
-```bash
-ls, cd, pwd, mkdir, touch, cat, echo, cp, mv, rm, ln, stat, file
-```
-
-## Search & Size
-
-```bash
-find, du, df
-```
-
-## Permissions
-
-```bash
-chmod, chown, chgrp, umask
-```
-
-## File Content
-
-```bash
-cat, head, tail, less, more, nano, vim
-```
-
----
-
-# 🎯 7. Permission Quick Reference
-
-| Numeric | Symbolic | Meaning |
-| ------- | -------- | ------- |
-| 777 | rwxrwxrwx | Everyone can do everything (AVOID!) |
-| 755 | rwxr-xr-x | Owner full, others read+execute |
-| 644 | rw-r--r-- | Owner write, others read |
-| 700 | rwx------ | Owner only, private |
-| 600 | rw------- | Owner read/write only, very private |
-| 750 | rwxr-x--- | Owner full, group read+execute |
-| 640 | rw-r----- | Owner write, group read |
-
----
-
-# 🎉 End of Lab
-
-Congratulations! You now understand:
-
-✅ User identity commands  
-✅ Creating and managing users and groups  
-✅ File and directory operations  
-✅ Linux permission system  
-✅ Ownership and access control  
-
-These skills are **essential** for **Cloud Engineers, DevOps Engineers, SysAdmins, and Security Engineers**.
-
-Keep practicing! 🚀
+## 💡 Next Steps
+
+Practice these commands daily! Try:
+* Creating your own project folder structure
+* Setting up different permission levels
+* Working with multiple users
