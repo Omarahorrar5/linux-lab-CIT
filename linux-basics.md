@@ -14,6 +14,7 @@ Works on **Ubuntu (VMware)**.
 
 ---
 
+
 # 🗂️ 1. The Linux Filesystem
 
 Linux is a **tree structure** with `/` (root) as the top.
